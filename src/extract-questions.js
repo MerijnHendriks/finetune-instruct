@@ -167,7 +167,7 @@ class Config {
         this.port = 8080;
 
         /** Maximum amount of parallel connections. */
-        this.count = (!DEBUG)
+        this.connections = (!DEBUG)
             ? 32
             : 1;
 

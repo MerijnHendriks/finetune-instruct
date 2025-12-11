@@ -4,6 +4,6 @@
 --top_p 1.0 ^
 --ctx-size 2048 ^
 --parallel 1 ^
---mlock ^
---no-mmap
+--n-gpu-layers 20 ^
+--no-kv-offload
 pause
