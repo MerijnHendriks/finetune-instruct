@@ -49,14 +49,18 @@ class InstructGenerator {
      * @param {string} prompt The text to send to the model.
      * @returns {Promise<string>} The response.
      */
-    async queryModel(role, prompt /*, seed */) {
+    async queryModel(role, prompt, seed) {
         const maxToken = 1024;
         const body = {
             model: this.model,
-            // seed: seed,
+            seed: seed,
             temperature: this.temp,
             top_p: this.top_p,
             messages: [
+                {
+                    role: 'system',
+                    content: ' '
+                },
                 {
                     role: role,
                     content: prompt
@@ -88,10 +92,10 @@ class InstructGenerator {
             let message = '';
 
             try {
-                const text = await this.queryModel(role, prompt);
+                const text = await this.queryModel(role, prompt, i);
                 message = this.processor.extractMessage(this.api, this.stream, text);
             } catch (err) {
-                console.log(`ERROR: ${err}`);
+                console.log(`ERROR at ${i}: ${err}`);
             }
 
             if (message !== '' && message !== 'assistant') {
@@ -106,27 +110,6 @@ class InstructGenerator {
         }
     }
 
-    async generateMessage(role, prompt, i) {
-        console.log(`Generating ${i + 1} / ${this.count}...`);
-
-        let message = '';
-
-        try {
-            const text = await this.queryModel(role, prompt  /*, i */);
-            message = this.processor.extractMessage(this.api, this.stream, text);
-        } catch (error) {
-            console.log(`Connection error at ${index}.`);   
-        }
-
-        if (message === '' || message == 'assistant') {
-            console.log('Empty message, regenerating.');
-            i--;
-        } else {
-            const savepath = `${this.outpath}msg-${i + 1}.txt`;
-            await this.vfs.saveFile(savepath, message);
-        }
-    }
-
     /**
      * Generates instruction questions from API.
      */
@@ -135,7 +118,9 @@ class InstructGenerator {
         await this.vfs.createDir(this.outpath);
 
         // Setup generation prompt
-        const prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>';
+        //const prompt = '<|begin_of_text|> <|start_header_id|>user<|end_header_id|>';  // meta (llama3)
+        const prompt = '<s> [INST]'                                                     // mistral (7b)
+        //const prompt = '<s> [SYSTEM_PROMPT] [/SYSTEM_PROMPT] [INST]'                  // mistral (magistral)
         const role = 'assistant';
 
         // Get starting index
@@ -177,7 +162,7 @@ class InstructGenerator {
 
 class Config {
     constructor() {
-        const DEBUG = true;
+        const DEBUG = false;
 
         /** Amount of samples to generate. */
         this.count = (!DEBUG)
@@ -195,7 +180,7 @@ class Config {
 
         /** Maximum amount of parallel connections. */
         this.connections = (!DEBUG)
-            ? 32
+            ? 16
             : 1;
 
         /** The API to use. (can be "openai/v1" or "ollama") */
@@ -206,7 +191,6 @@ class Config {
 
         /**
          * The model to use when using Ollama.
-         * The following are supported: llama3 (NOT x.1, x.2, x.3).
          * 
          * Recommended for use:
          *
@@ -214,17 +198,21 @@ class Config {
          * --------- | -------- | ------------------------
          * Llama3    | 8B       | llama3:8b-instruct-q8_0
          * Llama3    | 70B      | llama3:70b-instruct-q8_0
+         * Mistral   | 7B       | mistral:7b-instruct-v0.3-q8_0
          * 
          * To install, run in powershell:
          * ollama run <model>
          */
-        this.model = "llama3:8b-instruct-q8_0";
+        //this.model = "llama3:8b-instruct-q8_0";
+        this.model = "ministral-3:14b-instruct-q8_0";
 
         /** Model temperature. */
-        this.temp = 0.6;
+        // this.temp = 0.6;
+        this.temp = 1;
 
         /** Model top_p sampler. */
-        this.top_p = 0.9;
+        //this.top_p = 0.9;
+        this.top_p = 1;
     }
 }
 
