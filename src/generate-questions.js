@@ -57,10 +57,12 @@ class InstructGenerator {
             temperature: this.temp,
             top_p: this.top_p,
             messages: [
+/*
                 {
                     role: 'system',
                     content: ' '
                 },
+*/
                 {
                     role: role,
                     content: prompt
@@ -180,7 +182,7 @@ class Config {
 
         /** Maximum amount of parallel connections. */
         this.connections = (!DEBUG)
-            ? 16
+            ? 48
             : 1;
 
         /** The API to use. (can be "openai/v1" or "ollama") */
@@ -203,15 +205,13 @@ class Config {
          * To install, run in powershell:
          * ollama run <model>
          */
-        //this.model = "llama3:8b-instruct-q8_0";
-        this.model = "ministral-3:14b-instruct-q8_0";
+        //this.model = 'llama3:8b-instruct-q8_0';
+        this.model = 'mistral:7b-instruct-v0.3-q8_0';
 
         /** Model temperature. */
-        // this.temp = 0.6;
-        this.temp = 1;
+        this.temp = 0.5;
 
         /** Model top_p sampler. */
-        //this.top_p = 0.9;
         this.top_p = 1;
     }
 }
