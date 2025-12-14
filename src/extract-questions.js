@@ -145,9 +145,21 @@ class QuestionExtractor {
         // Sort to original order
         this.extracted.sort((a, b) => a.index - b.index);
 
-        // Save
-        const text = JSON.stringify(this.extracted);
-        this.vfs.saveFile(`${config.out}/extracted-questions.jsonl`, text);
+        // Save the dataset file
+        for (let i = 0; i < this.extracted.length; i++) {
+            console.log(`Processing ${i + 1} / ${this.extracted.length}...`);
+
+            let obj = this.extracted[i];
+            delete obj.index;
+
+            let entry = JSON.stringify(obj);
+
+            if (i < this.extracted.length - 1) {
+                entry += '\n';
+            }
+
+            vfs.saveFile(`${config.out}extracted-questions.jsonl`, entry, true);
+        }
 
         console.log('Done.');
     }

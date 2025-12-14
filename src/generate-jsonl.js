@@ -30,7 +30,11 @@ class DatabaseGenerator {
 
             const file = await vfs.readFile(toProcess[i]);
             const obj = { text: processor.unescape(file) };
-            const entry = JSON.stringify(obj) + '\n';
+            let entry = JSON.stringify(obj);
+
+            if (i < toProcess.length - 1) {
+                entry += '\n';
+            }
 
             vfs.saveFile(`${outpath}generated-questions.jsonl`, entry, true);
         }
