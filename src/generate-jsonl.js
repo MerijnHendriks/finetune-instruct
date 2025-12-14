@@ -36,7 +36,7 @@ class DatabaseGenerator {
                 entry += '\n';
             }
 
-            vfs.saveFile(`${outpath}generated-questions.jsonl`, entry, true);
+            await vfs.saveFile(`${outpath}generated-questions.jsonl`, entry, true);
         }
 
         timer.stop();

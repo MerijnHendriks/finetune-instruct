@@ -158,7 +158,7 @@ class QuestionExtractor {
                 entry += '\n';
             }
 
-            vfs.saveFile(`${config.out}extracted-questions.jsonl`, entry, true);
+            await vfs.saveFile(`${config.out}extracted-questions.jsonl`, entry, true);
         }
 
         console.log('Done.');
