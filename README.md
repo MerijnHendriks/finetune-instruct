@@ -2,6 +2,6 @@
 
 ## Versions
 
-- nodejs: 24.11.1
-- llama.cpp: b7285
-- cuda 12.4
+- nodejs: 24.12.0
+- llama.cpp: b7399
+- cuda 13.1
