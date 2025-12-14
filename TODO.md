@@ -40,3 +40,19 @@ https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2 -- DOWNLOADED
 https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.1 -- DOWNLOADED
 https://huggingface.co/mistralai/Mathstral-7B-v0.1        -- DOWNLOADED
 https://huggingface.co/mistralai/Mamba-Codestral-7B-v0.1  -- DOWNLOADED
+
+### Qwen
+
+https://huggingface.co/Qwen/Qwen3-VL-8B-Thinking
+https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct
+https://huggingface.co/Qwen/Qwen3-14B
+https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct
+https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct
+https://huggingface.co/Qwen/Qwen2.5-14B-Instruct
+
+### Phi
+
+https://huggingface.co/microsoft/Phi-4-reasoning-plus
+https://huggingface.co/microsoft/Phi-4-reasoning
+https://huggingface.co/microsoft/phi-4
+https://huggingface.co/microsoft/Phi-3-medium-128k-instruct
