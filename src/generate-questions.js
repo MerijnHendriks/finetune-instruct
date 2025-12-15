@@ -49,7 +49,7 @@ class InstructGenerator {
      * @param {string} prompt The text to send to the model.
      * @returns {Promise<string>} The response.
      */
-    async queryModel(prompt, useSystem, seed) {
+    async queryModel(seed, prompt, role, useSystem, systemPrompt) {
         const maxToken = 1024;
         const body = {
             model: this.model,
@@ -68,12 +68,12 @@ class InstructGenerator {
         if (useSystem) {
             body.messages.push({
                 role: 'system',
-                content: ''
+                content: systemPrompt
             });
         }
 
         body.messages.push({
-            role: 'assistant',
+            role: role,
             content: prompt
         });
 
@@ -87,7 +87,7 @@ class InstructGenerator {
      * @param {string} prompt The text to send to the model.
      * @param {number} i Current request index.
      */
-    async generateMessage(prompt, useSystem, i) {
+    async generateMessage(i, prompt, role, useSystem, systemPrompt) {
         while (true) {
             console.log(`Generating ${i + 1} / ${this.count}...`);
 
@@ -95,7 +95,7 @@ class InstructGenerator {
             let message = '';
 
             try {
-                const text = await this.queryModel(prompt, useSystem, i);
+                const text = await this.queryModel(i, prompt, role, useSystem, systemPrompt);
                 message = this.processor.extractMessage(this.api, this.stream, text);
             } catch (err) {
                 console.log(`ERROR at ${i}: ${err}`);
@@ -120,46 +120,102 @@ class InstructGenerator {
         // Create file directory (if it doesn't exist)
         await this.vfs.createDir(this.outpath);
 
-        // set prompt to use
+        // Set prompt to use
         let prompt = '';
+        let role = '';
         let useSystem = false;
+        let systemPrompt = '';
         switch (this.model) {
-            case 'mistral:7b-instruct-v0.1-q8_0':
+            // NOTE: Seems to output a lot of math questions.
+            case 'mistral:7b-v0.1':
+                prompt = '<s>[INST]';
+                role = 'assistant';
+                useSystem = true;
+                break;
+
+            // NOTE: Questions are decent, but the output format is weird.
+            //       Sometimes includes multi-turn.
+            case 'mistral:7b-v0.2':
                 prompt = '<s>[INST]';
                 useSystem = true;
                 break;
 
-            case 'mistral:7b-instruct-v0.2-q8_0':
+            // NOTE: Usable output, apache 2.0 licensed.
+            case 'mistral:7b-v0.3':
                 prompt = '<s>[INST]';
-                useSystem = true;
-                break;
-
-            case 'mistral:7b-instruct-v0.3-q8_0':
-            case 'ministral-3:3b-instruct-2512-q8_0':
-            case 'ministral-3:3b-reasoning-2512-q8_0':
-            case 'ministral-3:8b-instruct-2512-q8_0':
-            case 'ministral-3:8b-reasoning-2512-q8_0':
-            case 'ministral-3:14b-instruct-2512-q8_0':
-            case 'ministral-3:14b-reasoning-2512-q8_0':
-                prompt = '<s>[INST]';
+                role = 'assistant';
                 useSystem = false;
                 break;
 
-            case 'magistral-small:24b-2509-q4_k_m':
+            // NOTE: Usable output, apache 2.0 licensed.
+            //       Instruct and reasoning variant of same size produce same output.
+            case 'ministral-3:3b-2512':
+            case 'ministral-3:8b-2512':
+            case 'ministral-3:14b-2512':
+                prompt = '<s>[INST]';
+                role = 'assistant';
+                useSystem = true;
+                break;
+
+            // NOTE: Usable output, apache 2.0 licensed.
+            case 'magistral-small:24b-2509':
                 prompt = '<s>[SYSTEM_PROMPT] [/SYSTEM_PROMPT] [INST]';
+                role = 'assistant';
                 useSystem = true;
                 break;
 
-            case 'llama3:8b-instruct-q8_0':
-            case 'llama3:70b-instruct-q8_0':
-            case 'llama3.1:8b-instruct-q8_0':
-            case 'llama3.1:70b-instruct-q8_0':
-            case 'llama3.1:405b-instruct-q8_0':
-            case 'llama3.2:1b-instruct-q8_0':
-            case 'llama3.2:3b-instruct-q8_0':
-            case 'llama3.3:70b-instruct-q8_0':
-                prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>';
+            // NOTE: Usable output, llama3 licensed.
+            //       Sometimes includes multi-turn.
+            case 'llama3:8b':
+            case 'llama3:70b':
+                prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
+                role = 'assistant';
                 useSystem = false;
+                break;
+
+            // NOTE: Produces mostly math questions.
+            case 'llama3.1:8b':
+                prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
+                role = 'assistant';
+                useSystem = false;
+                break;
+
+            // NOTE: Rarely produced questions, usually text dumps.
+            case 'llama3.2:3b':
+                prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
+                role = 'assistant';
+                useSystem = true;
+                break;
+
+            // NOTE: Usable output, llama3 licensed.
+            /* QUICK STUDY
+             * - 0 \n: varied questions
+             * - 1 \n: mostly travel and history questions
+             * - 2 \n: same as no newline
+             */
+            case 'llama3.2:1b':
+                prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
+                role = 'assistant';
+                useSystem = true;
+                break;
+
+            // NOTE: Produced too much garbage to be useful
+            case 'userlm:8b':
+                prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
+                role = 'assistant';
+                useSystem = false;
+                break;
+
+            // NOTE: Usable output, mit licensed.
+            //       Includes multi-turn.
+            case 'gpt2:1.7b':
+                prompt = '<|im_start|>user';
+                role = 'assistant';
+                useSystem = true;
+                break;
+
+            default:
+                console.log('Unknown model.');
                 break;
         }
 
@@ -184,7 +240,7 @@ class InstructGenerator {
             }
 
             const tasks = indexes.map(async (i) => {
-                await this.generateMessage(prompt, useSystem, i);
+                await this.generateMessage(i, prompt, role, useSystem, systemPrompt);
             });
 
             // Run tasks in parallel
@@ -202,7 +258,7 @@ class InstructGenerator {
 
 class Config {
     constructor() {
-        const DEBUG = false;
+        const DEBUG = true;
 
         /** Amount of samples to generate. */
         this.count = (!DEBUG)
@@ -228,7 +284,7 @@ class Config {
         this.stream = false;
 
         /** The model to use (in ollama naming format) */
-        this.model = 'mistral:7b-instruct-v0.2-q8_0';
+        this.model = 'ministral-3:3b-2512';
 
         /** Model temperature. */
         this.temp = 0.5;

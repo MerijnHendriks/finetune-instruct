@@ -56,3 +56,7 @@ https://huggingface.co/microsoft/Phi-4-reasoning-plus
 https://huggingface.co/microsoft/Phi-4-reasoning
 https://huggingface.co/microsoft/phi-4
 https://huggingface.co/microsoft/Phi-3-medium-128k-instruct
+
+### OpenAI
+
+https://huggingface.co/openai-community/gpt2-xl
