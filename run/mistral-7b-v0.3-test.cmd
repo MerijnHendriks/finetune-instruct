@@ -4,5 +4,6 @@
 --top_p 1.0 ^
 --ctx-size 1024 ^
 --parallel 1 ^
---no-kv-offload
+--mlock ^
+--no-mmap
 pause

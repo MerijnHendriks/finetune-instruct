@@ -49,25 +49,14 @@ class InstructGenerator {
      * @param {string} prompt The text to send to the model.
      * @returns {Promise<string>} The response.
      */
-    async queryModel(role, prompt, seed) {
+    async queryModel(prompt, useSystem, seed) {
         const maxToken = 1024;
         const body = {
             model: this.model,
             seed: seed,
             temperature: this.temp,
             top_p: this.top_p,
-            messages: [
-/*
-                {
-                    role: 'system',
-                    content: ' '
-                },
-*/
-                {
-                    role: role,
-                    content: prompt
-                }
-            ],
+            messages: [],
             stream: this.stream,
             stream_options: {
                 include_obfuscation: false
@@ -75,6 +64,18 @@ class InstructGenerator {
             max_completion_tokens: maxToken,
             max_tokens: maxToken
         };
+
+        if (useSystem) {
+            body.messages.push({
+                role: 'system',
+                content: ''
+            });
+        }
+
+        body.messages.push({
+            role: 'assistant',
+            content: prompt
+        });
 
         return await this.client.post(body);
     }
@@ -86,7 +87,7 @@ class InstructGenerator {
      * @param {string} prompt The text to send to the model.
      * @param {number} i Current request index.
      */
-    async generateMessage(role, prompt, i) {
+    async generateMessage(prompt, useSystem, i) {
         while (true) {
             console.log(`Generating ${i + 1} / ${this.count}...`);
 
@@ -94,7 +95,7 @@ class InstructGenerator {
             let message = '';
 
             try {
-                const text = await this.queryModel(role, prompt, i);
+                const text = await this.queryModel(prompt, useSystem, i);
                 message = this.processor.extractMessage(this.api, this.stream, text);
             } catch (err) {
                 console.log(`ERROR at ${i}: ${err}`);
@@ -119,11 +120,48 @@ class InstructGenerator {
         // Create file directory (if it doesn't exist)
         await this.vfs.createDir(this.outpath);
 
-        // Setup generation prompt
-        //const prompt = '<|begin_of_text|> <|start_header_id|>user<|end_header_id|>';  // meta (llama3)
-        const prompt = '<s> [INST]'                                                     // mistral (7b)
-        //const prompt = '<s> [SYSTEM_PROMPT] [/SYSTEM_PROMPT] [INST]'                  // mistral (magistral)
-        const role = 'assistant';
+        // set prompt to use
+        let prompt = '';
+        let useSystem = false;
+        switch (this.model) {
+            case 'mistral:7b-instruct-v0.1-q8_0':
+                prompt = '<s>[INST]';
+                useSystem = true;
+                break;
+
+            case 'mistral:7b-instruct-v0.2-q8_0':
+                prompt = '<s>[INST]';
+                useSystem = true;
+                break;
+
+            case 'mistral:7b-instruct-v0.3-q8_0':
+            case 'ministral-3:3b-instruct-2512-q8_0':
+            case 'ministral-3:3b-reasoning-2512-q8_0':
+            case 'ministral-3:8b-instruct-2512-q8_0':
+            case 'ministral-3:8b-reasoning-2512-q8_0':
+            case 'ministral-3:14b-instruct-2512-q8_0':
+            case 'ministral-3:14b-reasoning-2512-q8_0':
+                prompt = '<s>[INST]';
+                useSystem = false;
+                break;
+
+            case 'magistral-small:24b-2509-q4_k_m':
+                prompt = '<s>[SYSTEM_PROMPT] [/SYSTEM_PROMPT] [INST]';
+                useSystem = true;
+                break;
+
+            case 'llama3:8b-instruct-q8_0':
+            case 'llama3:70b-instruct-q8_0':
+            case 'llama3.1:8b-instruct-q8_0':
+            case 'llama3.1:70b-instruct-q8_0':
+            case 'llama3.1:405b-instruct-q8_0':
+            case 'llama3.2:1b-instruct-q8_0':
+            case 'llama3.2:3b-instruct-q8_0':
+            case 'llama3.3:70b-instruct-q8_0':
+                prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>';
+                useSystem = false;
+                break;
+        }
 
         // Get starting index
         const start = await this.vfs.getFilesCount(this.outpath);
@@ -146,7 +184,7 @@ class InstructGenerator {
             }
 
             const tasks = indexes.map(async (i) => {
-                await this.generateMessage(role, prompt, i);
+                await this.generateMessage(prompt, useSystem, i);
             });
 
             // Run tasks in parallel
@@ -181,9 +219,7 @@ class Config {
         this.port = 8080;
 
         /** Maximum amount of parallel connections. */
-        this.connections = (!DEBUG)
-            ? 48
-            : 1;
+        this.connections = (!DEBUG) ? 48 : 1;
 
         /** The API to use. (can be "openai/v1" or "ollama") */
         this.api = "openai/v1";
@@ -191,22 +227,8 @@ class Config {
         /** If we use SSE when receiving the response */
         this.stream = false;
 
-        /**
-         * The model to use when using Ollama.
-         * 
-         * Recommended for use:
-         *
-         * **Model** | **Size** | **Identifier**
-         * --------- | -------- | ------------------------
-         * Llama3    | 8B       | llama3:8b-instruct-q8_0
-         * Llama3    | 70B      | llama3:70b-instruct-q8_0
-         * Mistral   | 7B       | mistral:7b-instruct-v0.3-q8_0
-         * 
-         * To install, run in powershell:
-         * ollama run <model>
-         */
-        //this.model = 'llama3:8b-instruct-q8_0';
-        this.model = 'mistral:7b-instruct-v0.3-q8_0';
+        /** The model to use (in ollama naming format) */
+        this.model = 'mistral:7b-instruct-v0.2-q8_0';
 
         /** Model temperature. */
         this.temp = 0.5;
