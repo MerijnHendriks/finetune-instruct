@@ -157,7 +157,17 @@ class InstructGenerator {
                 useSystem = true;
                 break;
 
+            // NOTE: Produced quite a lot of garbage, might need lower temp.
+            case 'magistral-small:24b-2506':
+            case 'magistral-small:24b-2507':
+                prompt = '<s>[SYSTEM_PROMPT] [/SYSTEM_PROMPT] [INST]';
+                role = 'assistant';
+                useSystem = true;
+                systemPrompt = ' ';
+                break;
+
             // NOTE: Usable output, apache 2.0 licensed.
+            //       Sometimes includes multi-turn.
             case 'magistral-small:24b-2509':
                 prompt = '<s>[SYSTEM_PROMPT] [/SYSTEM_PROMPT] [INST]';
                 role = 'assistant';
@@ -285,7 +295,7 @@ class Config {
         this.stream = false;
 
         /** The model to use (in ollama naming format) */
-        this.model = 'magistral-small:24b-2509';
+        this.model = 'magistral-small:24b-2506';
 
         /** Model temperature. */
         this.temp = 0.5;
