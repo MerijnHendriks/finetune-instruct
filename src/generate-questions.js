@@ -295,7 +295,7 @@ class Config {
         this.stream = false;
 
         /** The model to use (in ollama naming format) */
-        this.model = 'magistral-small:24b-2506';
+        this.model = 'gpt2:1.7b';
 
         /** Model temperature. */
         this.temp = 0.5;
