@@ -162,6 +162,7 @@ class InstructGenerator {
                 prompt = '<s>[SYSTEM_PROMPT] [/SYSTEM_PROMPT] [INST]';
                 role = 'assistant';
                 useSystem = true;
+                systemPrompt = ' ';
                 break;
 
             // NOTE: Usable output, llama3 licensed.
@@ -284,7 +285,7 @@ class Config {
         this.stream = false;
 
         /** The model to use (in ollama naming format) */
-        this.model = 'ministral-3:3b-2512';
+        this.model = 'magistral-small:24b-2509';
 
         /** Model temperature. */
         this.temp = 0.5;
