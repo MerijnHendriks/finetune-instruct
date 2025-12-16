@@ -16,8 +16,6 @@ class InstructGenerator {
         this.api = config.api;
         this.stream = config.stream;
         this.model = config.model;
-        this.temp = config.temp;
-        this.top_p = config.top_p;
         this.outpath = `${config.out}/${this.model.replaceAll(':', '-')}/`;
 
         // Lazyload client
@@ -131,6 +129,9 @@ class InstructGenerator {
                 prompt = '<s>[INST]';
                 role = 'assistant';
                 useSystem = true;
+                systemPrompt = '';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             // NOTE: Questions are decent, but the output format is weird.
@@ -138,6 +139,9 @@ class InstructGenerator {
             case 'mistral:7b-v0.2':
                 prompt = '<s>[INST]';
                 useSystem = true;
+                systemPrompt = '';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             // NOTE: Usable output, apache 2.0 licensed.
@@ -145,6 +149,9 @@ class InstructGenerator {
                 prompt = '<s>[INST]';
                 role = 'assistant';
                 useSystem = false;
+                systemPrompt = '';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             // NOTE: Usable output, apache 2.0 licensed.
@@ -155,15 +162,46 @@ class InstructGenerator {
                 prompt = '<s>[INST]';
                 role = 'assistant';
                 useSystem = true;
+                systemPrompt = '';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
-            // NOTE: Produced quite a lot of garbage, might need lower temp.
+            // NOTE: Usable output, apache 2.0 licensed.
+            //       Relative high chance of getting generic hello message.
+            case 'devtral-small:24b-2505':
+            case 'devtral-small:24b-2507':
+            case 'devtral-small-2:24b-2512':
+                prompt = '<s>[INST]';
+                role = 'assistant';
+                useSystem = true;
+                systemPrompt = ' ';
+                this.temp = 0.5;
+                this.top_p = 1;
+                break;
+
+            // NOTE: Usable output, apache 2.0 licensed.
+            //       Relative high chance of getting generic hello message.
+            case 'mistral-small-3:24b-2501':
+            case 'mistral-small-3:24b-2503':
+            case 'mistral-small-3:24b-2506':
+                prompt = '<s>[INST]';
+                role = 'assistant';
+                useSystem = true;
+                systemPrompt = ' ';
+                this.temp = 0.5;
+                this.top_p = 1;
+                break;
+
+            // NOTE: Produced quite a lot of garbage.
             case 'magistral-small:24b-2506':
             case 'magistral-small:24b-2507':
                 prompt = '<s>[SYSTEM_PROMPT] [/SYSTEM_PROMPT] [INST]';
                 role = 'assistant';
                 useSystem = true;
                 systemPrompt = ' ';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             // NOTE: Usable output, apache 2.0 licensed.
@@ -173,6 +211,8 @@ class InstructGenerator {
                 role = 'assistant';
                 useSystem = true;
                 systemPrompt = ' ';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             // NOTE: Usable output, llama3 licensed.
@@ -182,6 +222,9 @@ class InstructGenerator {
                 prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
                 role = 'assistant';
                 useSystem = false;
+                systemPrompt = '';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             // NOTE: Produces mostly math questions.
@@ -189,6 +232,9 @@ class InstructGenerator {
                 prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
                 role = 'assistant';
                 useSystem = false;
+                systemPrompt = '';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             // NOTE: Rarely produced questions, usually text dumps.
@@ -196,6 +242,9 @@ class InstructGenerator {
                 prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
                 role = 'assistant';
                 useSystem = true;
+                systemPrompt = '';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             // NOTE: Usable output, llama3 licensed.
@@ -208,6 +257,9 @@ class InstructGenerator {
                 prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
                 role = 'assistant';
                 useSystem = true;
+                systemPrompt = '';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             // NOTE: Produced too much garbage to be useful
@@ -215,14 +267,9 @@ class InstructGenerator {
                 prompt = '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n';
                 role = 'assistant';
                 useSystem = false;
-                break;
-
-            // NOTE: Usable output, mit licensed.
-            //       Includes multi-turn.
-            case 'gpt2:1.7b':
-                prompt = '<|im_start|>user';
-                role = 'assistant';
-                useSystem = true;
+                systemPrompt = '';
+                this.temp = 0.5;
+                this.top_p = 1;
                 break;
 
             default:
@@ -295,13 +342,7 @@ class Config {
         this.stream = false;
 
         /** The model to use (in ollama naming format) */
-        this.model = 'gpt2:1.7b';
-
-        /** Model temperature. */
-        this.temp = 0.5;
-
-        /** Model top_p sampler. */
-        this.top_p = 1;
+        this.model = 'devtral-small-2:24b-2512';
     }
 }
 
